@@ -290,61 +290,148 @@ func main() {
 	}
 
 	// ───────────────────────────────────────────────────────────────────────────
-	// PHASE 6: INDUSTRIAL TERMINAL OUTPUT — 包豪斯工业终端打印
+	// PHASE 6: INDUSTRIAL TERMINAL OUTPUT — One Dark Pro Bauhaus Edition
 	// ───────────────────────────────────────────────────────────────────────────
 
-	fmt.Printf("[SYSTEM RUNTIME: %s (UTC+8)]\n", runtimeStamp)
-	fmt.Printf("CHRONOS FLUID ROUTER v71 AWAKE. TEMPORAL STATUS: %s CLOSE.\n", alignedClose.Format("2006-01-02"))
-	fmt.Println("STRATEGIC CORE ASSET ALLOCATION REGIME ACTIVATED. NOISE OPTIMIZATION SUPPRESSED.")
-	fmt.Println()
-	fmt.Println("1. [TELEMETRY // MACRO TREND & RESERVOIR]")
-	fmt.Printf("* QQQM SPOT vs EMA-200d ($δ_{macro}$): %.4f\n", deltaMacro)
-	fmt.Printf("* MARKET REGIME: %s\n", marketRegime)
-	fmt.Printf("* SGOV VALVE INGESTION RATE ($W_{SGOV}$): %.2f%%\n", wSGOV*100)
-	fmt.Printf("* BUCKET SMOOTH DRAINAGE RATE ($φ$): %.2f%% │ CURRENT BUCKET WATER: %.2f RMB\n", phi*100, newSGOVBalance)
-	fmt.Printf("* STRUCTURAL SAFETY CUSHION (60%% MIN FLOOR): %.2f RMB (SECURED)\n", newSGOVBalance*0.60)
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("2. [SHANNON'S DEMON // GRAVITY BIAS MAP]")
-	if sDeficit == 0 {
-		fmt.Println("* Realized Portfolio Deficit ($S_{deficit}$): BALANCED_PROTECTION")
-	} else {
-		fmt.Printf("* Realized Portfolio Deficit ($S_{deficit}$): %.4f\n", sDeficit)
-	}
-	fmt.Printf("* Sectional Deviation Vector (d): (SMH: %.4f, QQQM: %.4f, ORBX: %.4f, URA: %.4f)\n", deviation["SMH"], deviation["QQQM"], deviation["ORBX"], deviation["URA"])
-	fmt.Printf("* Primary Inflow Destination: %s\n", primary)
-	fmt.Println()
-	fmt.Println()
-	fmt.Printf("3. [RECONCILIATION // CONVERGENCE FLOW (Total Action Capital: %.2f RMB)]\n", totalBullet)
-	fmt.Printf("* Inflow Contribution: %.2f RMB │ Bucket Fluid Injection: %.2f RMB\n", inflowContribution, bucketInjection)
-	fmt.Printf("* Heaviside Step Friction Filter: %.2f RMB Applied. Residuals Merged to QQQM.\n", operatorInput.HeavisideFloorRMB)
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("---")
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("## ASSET | ROUTE_WEIGHT % | FIAT_ALLOCATION | STRATEGIC REBALANCING ACTION")
-	fmt.Println()
-	fmt.Println()
-	for _, line := range lines {
-		fmt.Printf("%s  |    %5.1f%%     |   %8.2f RMB   | %s\n", line.Ticker, line.Weight*100, line.Allocation, line.Action)
-	}
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("[PERSISTENT MEMORY SNAPSHOT // DO NOT DISTURB]")
-	fmt.Println("Copy these into the next run's [REQUIRED_OPERATOR_INPUT]:")
-	fmt.Printf("SGOV_Balance_RMB: %.2f\n", newSGOVBalance)
-	fmt.Println()
-	fmt.Println("[ENGINEERING CLOSURE STATUS]")
-	fmt.Printf("* Persistent state saved to: %s\n", *statePath)
-	fmt.Printf("* Trading calendar alignment: %s → %s (US market trading day)\n", awake.Format("2006-01-02"), alignedClose.Format("2006-01-02"))
+	printTerminalUI(
+		runtimeStamp, alignedClose,
+		deltaMacro, marketRegime,
+		wSGOV, phi, newSGOVBalance,
+		sDeficit, deviation, primary,
+		inflowContribution, bucketInjection, operatorInput.HeavisideFloorRMB, totalBullet,
+		lines,
+		*statePath, awake, orbxErr, orbxBars,
+	)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// One Dark Pro ANSI palette — all escape sequences centralised here.
+// ─────────────────────────────────────────────────────────────────────────────
+const (
+	ansiReset  = "\x1b[0m"
+	ansiBlue   = "\x1b[1;34m" // labels / section headers  (#61afef)
+	ansiCyan   = "\x1b[1;36m" // metrics / capital figures (#56b6c2)
+	ansiGreen  = "\x1b[1;32m" // secured / bull trend      (#98c379)
+	ansiRed    = "\x1b[1;31m" // errors / degraded         (#e06c75)
+	ansiOrange = "\x1b[1;33m" // warnings / actions        (#d19a66)
+	ansiPurple = "\x1b[1;35m" // brand header              (#c678dd)
+	ansiGray   = "\x1b[38;5;242m" // structural lines / dim text
+	ansiDim    = "\x1b[2;37m"    // footer dim text
+)
+
+// printTerminalUI renders the full One Dark Pro Bauhaus terminal output.
+func printTerminalUI(
+	runtimeStamp string,
+	alignedClose time.Time,
+	deltaMacro float64,
+	marketRegime string,
+	wSGOV, phi, newSGOVBalance float64,
+	sDeficit float64,
+	deviation map[string]float64,
+	primary string,
+	inflowContribution, bucketInjection, heavisideFloor, totalBullet float64,
+	lines []routeLine,
+	statePath string,
+	awake time.Time,
+	orbxErr error,
+	orbxBars []dailyClose,
+) {
+	// ── ORBX continuity warning (printed before the box) ─────────────────────
 	if orbxErr != nil {
-		fmt.Printf("* ORBX continuity: DEGRADED (using %d bars, synthetic backfill applied)\n", len(orbxBars))
-	} else {
-		fmt.Printf("* ORBX continuity: VERIFIED (%d bars)\n", len(orbxBars))
+		fmt.Printf("%s[!] ORBX CONTINUITY DEGRADED: %v%s\n", ansiRed, orbxErr, ansiReset)
+		fmt.Printf("%s[!] Asset allocation risks acknowledged. Proceeding on active memory.%s\n", ansiOrange, ansiReset)
 	}
+
+	// ── Header box ───────────────────────────────────────────────────────────
 	fmt.Println()
-	fmt.Println("EXECUTIVE STATUS: STRUCTURAL REBALANCING COMPLETED. STEADY CONVERGENCE SECURED.")
+	fmt.Println("┌───────────────────────────────────────────────────────────────────────────┐")
+	fmt.Printf("│ %s■ CHRONOS FLUID ROUTER v7.1%s                                             │\n", ansiPurple, ansiReset)
+	fmt.Println("├───────────────────────────────────────────────────────────────────────────┤")
+	fmt.Printf("│ %sSYSTEM AWAKE :%s %-52s      │\n", ansiBlue, ansiReset, runtimeStamp+" (UTC+8)")
+	fmt.Printf("│ %sMARKET CLOSE :%s %-52s      │\n", ansiBlue, ansiReset, alignedClose.Format("2006-01-02")+" (US Market Trading Day)")
+	fmt.Println("└───────────────────────────────────────────────────────────────────────────┘")
+
+	// ── Section 1: Telemetry ─────────────────────────────────────────────────
+	fmt.Printf("\n%s━━━ 1. TELEMETRY // MACRO RESERVOIR ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n", ansiBlue, ansiReset)
+
+	regimeColor := ansiGreen
+	if marketRegime != "STRUCTURAL BULL TREND (δ >= 1.0)" {
+		regimeColor = ansiOrange
+	}
+	fmt.Printf("  ┃ %-35s┃ %s%.4f%s\n", "QQQM SPOT vs EMA-200d (δ_macro)", ansiCyan, deltaMacro, ansiReset)
+	fmt.Printf("  ┃ %-35s┃ %s%s%s\n", "REGIME STATUS", regimeColor, marketRegime, ansiReset)
+	fmt.Printf("  ┃ %-35s┃ %s%.2f%%%s\n", "SGOV VALVE INGESTION RATE", ansiCyan, wSGOV*100, ansiReset)
+	fmt.Printf("  ┃ %-35s┃ %s%.2f%%%s │ Pool Balance: %s%.2f RMB%s\n",
+		"BUCKET SMOOTH DRAINAGE RATE (φ)", ansiCyan, phi*100, ansiReset, ansiCyan, newSGOVBalance, ansiReset)
+	fmt.Printf("  ┃ %-35s┃ %s%.2f RMB (SECURED)%s\n",
+		"SAFETY CUSHION (60% MIN FLOOR)", ansiGreen, newSGOVBalance*0.60, ansiReset)
+
+	// ── Section 2: Shannon's Demon ───────────────────────────────────────────
+	fmt.Printf("\n%s━━━ 2. SHANNON'S DEMON // BIAS MAP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n", ansiBlue, ansiReset)
+
+	defLabel := "BALANCED_PROTECTION"
+	defValue := defLabel
+	if sDeficit != 0 {
+		defValue = fmt.Sprintf("%s%.4f%s", ansiCyan, sDeficit, ansiReset)
+	} else {
+		defValue = fmt.Sprintf("%s%s%s", ansiCyan, defLabel, ansiReset)
+	}
+	fmt.Printf("  ┃ %-35s┃ %s\n", "Realized Portfolio Deficit (S_def)", defValue)
+	fmt.Printf("  ┃ %-35s┃ (SMH:%s%.2f%s, QQQM:%s%.2f%s, ORBX:%s%.2f%s, URA:%s%.2f%s)\n",
+		"Sectional Deviation Vector (d)",
+		ansiCyan, deviation["SMH"], ansiReset,
+		ansiCyan, deviation["QQQM"], ansiReset,
+		ansiCyan, deviation["ORBX"], ansiReset,
+		ansiCyan, deviation["URA"], ansiReset,
+	)
+	fmt.Printf("  ┃ %-35s┃ %s%s%s\n", "Primary Inflow Destination", ansiBlue, primary, ansiReset)
+
+	// ── Section 3: Reconciliation ────────────────────────────────────────────
+	fmt.Printf("\n%s━━━ 3. RECONCILIATION // INTERFLOW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n", ansiBlue, ansiReset)
+	fmt.Printf("  ┃ %-35s┃ %s%.2f RMB%s\n", "Inflow Capital Contribution", ansiCyan, inflowContribution, ansiReset)
+	fmt.Printf("  ┃ %-35s┃ %s%.2f RMB%s\n", "Bucket Fluid Injection", ansiCyan, bucketInjection, ansiReset)
+	fmt.Printf("  ┃ %-35s┃ %s%.2f RMB Applied (Residuals \u27a2 QQQM)%s\n",
+		"Heaviside Step Friction Filter", ansiOrange, heavisideFloor, ansiReset)
+
+	// ── Balancing Matrix ─────────────────────────────────────────────────────
+	fmt.Printf("\n%s─── BALANCING MATRIX ───────────────────────────────────────────────────────%s\n", ansiBlue, ansiReset)
+	fmt.Printf("  %sASSET │ TARGET %% │    FIAT ALLOCATION   │ STRATEGIC ACTION%s\n", ansiDim, ansiReset)
+	fmt.Printf("%s  ──────┼──────────┼──────────────────────┼─────────────────────────────────%s\n", ansiGray, ansiReset)
+
+	for _, l := range lines {
+		if l.Allocation == 0 {
+			continue
+		}
+		// Extract the parenthetical suffix for color split: "BUY (CORE NUCLEUS ANCHOR)"
+		action := l.Action
+		buyPart := "BUY"
+		tagPart := ""
+		if len(action) > 4 && action[:4] == "BUY " {
+			tagPart = action[4:]
+		}
+		fmt.Printf("  %s%-6s%s│   %s%5.1f%%%s  │     %s%8.2f RMB%s      │ %s%s%s %s\n",
+			ansiBlue, l.Ticker, ansiReset,
+			ansiCyan, l.Weight*100, ansiReset,
+			ansiCyan, l.Allocation, ansiReset,
+			ansiGreen, buyPart, ansiReset,
+			tagPart,
+		)
+	}
+
+	fmt.Printf("%s  ──────┴──────────┴──────────────────────┴────────────────────────────────_%s\n", ansiGray, ansiReset)
+	fmt.Printf("  %sTOTAL CAPACITY   │     %s%8.2f RMB%s      │ %sΣ W = 1.0000 (CLOSED)%s\n",
+		ansiDim,
+		ansiCyan, totalBullet, ansiReset,
+		ansiGreen, ansiReset,
+	)
+
+	// ── Footer ───────────────────────────────────────────────────────────────
+	fmt.Println()
+	fmt.Printf("%s[!] PERSISTENT STATE SAVED \u27a2 %s%s\n", ansiDim, statePath, ansiReset)
+	fmt.Printf("%s[!] SGOV_Balance_RMB: %.2f cached for Next Required Input.%s\n", ansiDim, newSGOVBalance, ansiReset)
+	fmt.Println()
+	fmt.Printf("%s✔ EXECUTIVE STATUS: STRUCTURAL REBALANCING COMPLETED. STEADY CONVERGENCE SECURED.%s\n", ansiGreen, ansiReset)
+	fmt.Println()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

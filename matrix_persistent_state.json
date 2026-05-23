@@ -1,5 +1,5 @@
 {
-  "last_run_date": "2026-05-21",
+  "last_run_date": "2026-05-22",
   "sgov_balance_rmb": 0,
   "current_weights": {
     "ORBX": 0,
@@ -9,18 +9,18 @@
   },
   "execution_log": [
     {
-      "date": "2026-05-21",
-      "delta_macro": 1.1703111053630317,
+      "date": "2026-05-22",
+      "delta_macro": 1.1731335194112076,
       "market_regime": "STRUCTURAL BULL TREND (δ \u003e= 1.0)",
       "w_sgov_percent": 0,
       "phi_percent": 0,
-      "total_bullet": 5000,
+      "total_bullet": 7000,
       "sgov_balance": 0,
       "allocations": {
-        "ORBX": 750,
-        "QQQM": 2000,
-        "SMH": 1500,
-        "URA": 750
+        "ORBX": 1050,
+        "QQQM": 2800,
+        "SMH": 2100,
+        "URA": 1050
       }
     }
   ]
