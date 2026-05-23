@@ -1,0 +1,18 @@
+{
+  "System_Awake_Date": "2026-05-23",
+  "Target_Inflow_RMB": 5000,
+  "SGOV_Balance_RMB": 0,
+  "W_current": {
+    "ORBX": 0,
+    "QQQM": 0,
+    "SMH": 0,
+    "URA": 0
+  },
+  "W_target": {
+    "ORBX": 0.15,
+    "QQQM": 0.4,
+    "SMH": 0.3,
+    "URA": 0.15
+  },
+  "Heaviside_Floor_RMB": 150
+}
