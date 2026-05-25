@@ -99,10 +99,12 @@ func riskBudgetForRegime(regime MarketRegime, cfg *EngineConfig) float64 {
 // EvaluateRegime classifies the current macro market regime using a 2-axis
 // matrix and computes the risk budget for the resolved regime.
 func EvaluateRegime(snapshots map[string]MarketSnapshot, cfg *EngineConfig) (MarketRegime, RegimeAxes) {
+	// AUDIT-FIX F-02: Axis A is now PHYSICALLY ISOLATED to QQQM only.
+	// SMH/URA/ORBX are sector noise — using them as macro trend source
+	// contaminates the telemetry anchor and produces false BLACK_SWAN signals
+	// when only a single sector dislocates.
 	qqqm, hasQQQM := snapshots["QQQM"]
-	smh, hasSMH := snapshots["SMH"]
-
-	if !hasQQQM || !hasSMH {
+	if !hasQQQM {
 		regime := RegimeNormal
 		return regime, RegimeAxes{
 			MacroMaxDD:   0,
@@ -114,10 +116,14 @@ func EvaluateRegime(snapshots map[string]MarketSnapshot, cfg *EngineConfig) (Mar
 		}
 	}
 
-	// ── Axis A: Systemic Trend ───────────────────────────────────────────────
-	macroMaxDD := math.Max(safeDrawdown(qqqm.Drawdown), safeDrawdown(smh.Drawdown))
+	// ── Axis A: Systemic Trend — LOCKED to QQQM (NASDAQ-100) ─────────────────
+	// Telemetry Anchor: macroMaxDD MUST source from QQQM only.
+	macroMaxDD := safeDrawdown(qqqm.Drawdown)
+	qqqmMomZ := safeMomentumZ(qqqm.MomentumZ)
 
-	// ── Axis B: Cross-Asset Stress ───────────────────────────────────────────
+	// ── Axis B: Cross-Asset Stress (sector noise — observability only) ───────
+	// CrossStress is used ONLY to refine NORMAL→CORRECTION and EUPHORIA→FRAGILE.
+	// It NEVER feeds back into Axis A drawdown classification.
 	crossStress := 0.0
 	stressSource := "N/A"
 	for ticker, snap := range snapshots {
@@ -129,21 +135,26 @@ func EvaluateRegime(snapshots map[string]MarketSnapshot, cfg *EngineConfig) (Mar
 	}
 	stressBand := classifyCrossStress(crossStress)
 
-	// ── Axis A classification ────────────────────────────────────────────────
+	// ── Axis A classification — QQQM-pure ────────────────────────────────────
+	// Thresholds aligned with v7.2 drawdown engine tiers:
+	//   BLACK_SWAN  ≥ 45% (Tier3)
+	//   CRISIS      ≥ 30% (Tier2)
+	//   CORRECTION  ≥ 20% (Tier1)
+	//   EUPHORIA    QQQM momentum > 1.8σ AND DD ≤ 2%
 	var trendRegime MarketRegime
 	var trendLabel string
 
 	switch {
-	case macroMaxDD >= 0.35 || safeDrawdown(qqqm.Drawdown) >= 0.28:
+	case macroMaxDD >= Tier3Thresh:
 		trendRegime = RegimeBlackSwan
 		trendLabel = "BLACK_SWAN"
-	case macroMaxDD >= 0.20:
+	case macroMaxDD >= Tier1UpperThresh:
 		trendRegime = RegimeCrisis
 		trendLabel = "CRISIS"
-	case macroMaxDD >= 0.08:
+	case macroMaxDD >= Tier1LowerThresh:
 		trendRegime = RegimeCorrection
 		trendLabel = "CORRECTION"
-	case safeMomentumZ(qqqm.MomentumZ) > 1.8 && safeMomentumZ(smh.MomentumZ) > 1.8 && macroMaxDD <= 0.02:
+	case qqqmMomZ > 1.8 && macroMaxDD <= 0.02:
 		trendRegime = RegimeEuphoria
 		trendLabel = "EUPHORIA"
 	default:
